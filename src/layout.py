@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 import csv
-from graphviz import Digraph
 
 
 class Node:
