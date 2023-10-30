@@ -1,5 +1,7 @@
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
+import csv
+from graphviz import Digraph
 
 
 class Node:
@@ -33,8 +35,6 @@ class Node:
 
     def plot(self):
         fig, ax = plt.subplots()
-        rect = Rectangle((0, 0), self.width, self.height, color="grey", fill=None)
-        ax.add_patch(rect)
         ax.text(
             self.width / 2,
             self.height,
@@ -62,6 +62,16 @@ class Node:
                 color="black",
             )
         else:
+            rect = Rectangle(
+                (x, y),
+                self.width,
+                self.height,
+                color="blue",
+                fill=None,
+                alpha=0.5,
+                linestyle="dashed",
+            )
+            ax.add_patch(rect)
             # Recursively plot the children
             if self.is_horizontal:
                 # Horizontal combination
@@ -75,3 +85,42 @@ class Node:
                 for child in self.children:
                     child.subplot(ax, x, y + y_offset)
                     y_offset += child.height
+
+
+def load_nodes(file_path):
+    nodes = []
+    with open(file_path, mode="r", newline="") as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            width = int(row["Width"])
+            height = int(row["Height"])
+            node = Node(width, height)
+            nodes.append(node)
+    return nodes
+
+
+# Creates a layout from a chromosome representation
+def create_layout(genes):
+    stack = []
+
+    for gene in genes:
+        if isinstance(gene, Node):
+            stack.append(gene)
+        elif gene == "H":
+            node2 = stack.pop()
+            node1 = stack.pop()
+            combined_node = node1.combine(node2, is_horizontal=True)
+            stack.append(combined_node)
+        elif gene == "V":
+            node2 = stack.pop()
+            node1 = stack.pop()
+            combined_node = node1.combine(node2, is_horizontal=False)
+            stack.append(combined_node)
+
+    if len(stack) != 1:
+        raise ValueError(
+            "Invalid layout genes. The stack should contain a single root node."
+        )
+
+    # The top of the stack represents the final integrated rectangle
+    return stack[0]
