@@ -99,12 +99,12 @@ def load_nodes(file_path):
 
 
 # Creates a layout from a chromosome representation
-def create_layout(genes):
+def create_layout(genes, nodes):
     stack = []
 
     for gene in genes:
-        if isinstance(gene, Node):
-            stack.append(gene)
+        if isinstance(gene, int):
+            stack.append(nodes[int(gene) - 1])
         elif gene == "H":
             node2 = stack.pop()
             node1 = stack.pop()
