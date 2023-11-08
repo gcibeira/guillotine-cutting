@@ -150,3 +150,61 @@ def fitness(genes, items):
     # The top of the stack represents the final integrated rectangle
     fitness = stack[0][0] * stack[0][1]
     return fitness
+
+
+# Function to initialize the population with random individuals
+def initialize_population(population_size, chromosome_length):
+    population = [
+        generate_random_chromosome(chromosome_length) for _ in range(population_size)
+    ]
+    return population
+
+
+# Function to select the top 'elite_size' individuals from the population
+def select_elite(population, elite_size, items):
+    population_with_fitness = [
+        (individual, fitness(individual, items)) for individual in population
+    ]
+    sorted_population = sorted(population_with_fitness, key=lambda x: x[1])
+    elite = [individual for individual, _ in sorted_population[:elite_size]]
+    return elite
+
+
+# Genetic Algorithm
+def genetic_algorithm(
+    population_size, chromosome_length, generations, elite_size, mutation_rate, items
+):
+    # Initialize the population
+    population = initialize_population(population_size, chromosome_length)
+
+    for _ in range(generations):
+        # Select the elite individuals
+        elite = select_elite(population, elite_size, items)
+
+        # Create a new population with the elite individuals
+        new_population = elite[:]
+
+        # Fill the rest of the new population
+        while len(new_population) < population_size:
+            # Perform selection and crossover
+            parent1, parent2 = random.choices(population, k=2)
+            child1, child2 = pmx_crossover(parent1, parent2)
+
+            # Perform mutation
+            if random.random() < mutation_rate:
+                child1 = mutate_genes(child1)
+            if random.random() < mutation_rate:
+                child2 = mutate_genes(child2)
+
+            # Add the children to the new population
+            new_population.extend([child1, child2])
+
+        # Update the population with the new population
+        population = new_population
+
+    # Select and return the best individual from the final population
+    best_individual, _ = min(
+        [(individual, fitness(individual, items)) for individual in population],
+        key=lambda x: x[1],
+    )
+    return best_individual
